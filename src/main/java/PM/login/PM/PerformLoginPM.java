@@ -53,14 +53,16 @@ public class PerformLoginPM {
         if (user == null) {
             throw new Exception("Inexistent username");
         }
+        
+        if (user.getAttempts() >= 3)                
+                throw new Exception("Password blocked");
 
         if (!user.getPassword().equals(password)) {
-            if (tentativas < 2) {
-                tentativas++;
+            if (user.getAttempts() < 2) {
+                user.setAttempts(user.getAttempts() + 1);
                 throw new Exception("Wrong password");
             } else {
                 throw new Exception("Password blocked");
-
             }
         }
 

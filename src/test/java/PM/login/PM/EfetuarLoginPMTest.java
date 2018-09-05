@@ -121,7 +121,7 @@ public class EfetuarLoginPMTest {
     public void testWrongPassword3() {
         UserDAO userDaoMock = mock(UserDAO.class);
         when(userDaoMock.getByName("andre"))
-                .thenReturn(new User("andre", "1234", UserType.NORMALUSER));
+                .thenReturn(new User("andre", "1234", UserType.NORMALUSER, 2));
 
         PerformLoginPM efetuarLoginPM = new PerformLoginPM();
         efetuarLoginPM.setLogin("andre");
@@ -129,16 +129,31 @@ public class EfetuarLoginPMTest {
 
         efetuarLoginPM.setUserDao(userDaoMock);
 
-        for(int i = 0; i < 3; i++) {
-            try {
-                efetuarLoginPM.pressLogin();
-                fail();
-            } catch (Exception e) {
-                if(i == 2)
-                    assertEquals("Password blocked", e.getMessage());
-                else    
-                    assertEquals("Wrong password", e.getMessage());
-            }
+        try {
+            efetuarLoginPM.pressLogin();
+            fail();
+        } catch (Exception e) {
+            assertEquals("Password blocked", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testUsuarioBloqueado() throws Exception {
+        UserDAO userDaoMock = mock(UserDAO.class);
+        when(userDaoMock.getByName("user"))
+                .thenReturn(new User("user", "normal", UserType.NORMALUSER , 3));
+
+        PerformLoginPM efetuarLoginPM = new PerformLoginPM();
+        efetuarLoginPM.setLogin("user");
+        efetuarLoginPM.setPassword("normal");
+
+        efetuarLoginPM.setUserDao(userDaoMock);
+
+        try {
+            efetuarLoginPM.pressLogin();
+            fail();
+        } catch (Exception e) {
+            assertEquals("Password blocked", e.getMessage());
         }
     }
 }
