@@ -20,27 +20,31 @@ import static org.mockito.Mockito.when;
  */
 public class BloquearLoginTest {
 
-    EfetuarLoginPM login;
+    PerformLoginPM login;
 
     @Before
     public void inicializa() {
-        login = new EfetuarLoginPM();
+        login = new PerformLoginPM();
     }
 
     @Test
-    public void testBloqueiaAposTresTentativasTest() throws Exception {
+    public void testBloqueiaAposTresTentativasTest() {
         UserDAO mock = Mockito.mock(UserDAO.class);
         User user = new User("jefferson", "bastiao", UserType.ADMIN);
         when(mock.getByName("jefferson")).thenReturn(user);
 
-        login.setLogin("jefferson");
-        login.setPassword("joao");
-        try {
-            login.pressLogin();
-            login.pressLogin();
-            login.pressLogin();
-        } catch (Exception e) {
-            Assert.assertEquals("Sua conta foi bloqueada por errar a senha 3 vezes", e.getMessage());
+        login.setLogin(user.getUsername());
+        login.setPassword("123");
+
+        for (int i = 0; i < 3; i++) {
+            try {
+                login.pressLogin();
+            } catch (Exception e) {
+                if(i < 2)
+                    Assert.assertEquals("Wrong password", e.getMessage());
+                else
+                    Assert.assertEquals("Sua conta foi bloqueada por errar a senha 3 vezes", e.getMessage());
+            }
         }
     }
 }

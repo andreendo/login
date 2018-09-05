@@ -11,6 +11,7 @@ public class EfetuarLoginPM {
     String login;
     String password;
     UserDAO userDao;
+    int cont = 0;
 
     public EfetuarLoginPM() {
         login = "";
@@ -41,6 +42,7 @@ public class EfetuarLoginPM {
     public AdminMainPagePM pressLogin() throws Exception {
         login = login.trim();
         password = password.trim();
+      
         if(login.isEmpty() || password.isEmpty())
             throw new Exception("Empty fields");
         
@@ -48,8 +50,16 @@ public class EfetuarLoginPM {
         if(user == null)
             throw new Exception("Inexistent username");
         
-        if(! user.getPassword().equals(password))
-            throw new Exception("Wrong password");
+        if(! user.getPassword().equals(password)){
+            
+            if(cont == 3){
+                cont = 0;
+                throw new Exception("Sua conta foi bloqueada por errar a senha 3 vezes");
+            }else{
+                cont ++;
+                throw new Exception("Wrong password");
+            }
+        }
         
         AdminMainPagePM adminMainPagePM = new AdminMainPagePM();
         adminMainPagePM.setLoggedUser(user);
