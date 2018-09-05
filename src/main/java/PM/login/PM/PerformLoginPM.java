@@ -12,6 +12,7 @@ public class PerformLoginPM {
     String login;
     String password;
     UserDAO userDao;
+    private int tentativas = 0;
 
     public PerformLoginPM() {
         login = "";
@@ -66,5 +67,9 @@ public class PerformLoginPM {
 
     void setUserDao(UserDAO userDao) {
         this.userDao = userDao;
+    }
+
+    int getTentativas() {
+        return this.tentativas;
     }
 }
