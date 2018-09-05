@@ -140,23 +140,5 @@ public class EfetuarLoginPMTest {
                     assertEquals("Wrong password", e.getMessage());
             }
         }
-        
-        
-//        efetuarLoginPM.setPassword("128");
-//        try {
-//            efetuarLoginPM.pressLogin();
-//            fail();
-//        } catch (Exception ex) {
-//            assertEquals("Wrong password", ex.getMessage());
-//        }
-//        
-//        efetuarLoginPM.setPassword("125");
-//        try {
-//            efetuarLoginPM.pressLogin();
-//            fail();
-//        } catch (Exception ex) {
-//            assertEquals("Wrong password", ex.getMessage());
-//        }
-        
     }
 }
