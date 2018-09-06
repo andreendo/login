@@ -9,9 +9,11 @@ import PM.login.DAO.UserDAO;
  * @author andreendo
  */
 public class PerformLoginPM {
+
     String login;
     String password;
     UserDAO userDao;
+    private int tentativas = 0;
 
     public PerformLoginPM() {
         login = "";
@@ -24,47 +26,63 @@ public class PerformLoginPM {
 
     public String getLogin() {
         return login;
-    }    
-    
+    }
+
     public void setPassword(String password) {
         this.password = password;
     }
-    
+
     public String getPassword() {
         return password;
-    }    
+    }
 
     public void clear() {
         login = "";
         password = "";
         System.out.println("PM.login.EfetuarLoginPM.clear()");
     }
-    
+
     public PagePM pressLogin() throws Exception {
         login = login.trim();
         password = password.trim();
-        if(login.isEmpty() || password.isEmpty())
+        if (login.isEmpty() || password.isEmpty()) {
             throw new Exception("Empty fields");
-        
+        }
+
         User user = userDao.getByName(login);
-        if(user == null)
+        if (user == null) {
             throw new Exception("Inexistent username");
+        }
         
-        if(! user.getPassword().equals(password))
-            throw new Exception("Wrong password");
-        
+        if (user.getAttempts() >= 3)                
+                throw new Exception("Password blocked");
+
+        if (!user.getPassword().equals(password)) {
+            if (user.getAttempts() < 2) {
+                user.setAttempts(user.getAttempts() + 1);
+                throw new Exception("Wrong password");
+            } else {
+                throw new Exception("Password blocked");
+            }
+        }
+
         PagePM pagePM = null;
-        if(user.getType() == UserType.ADMIN)
+        if (user.getType() == UserType.ADMIN) {
             pagePM = new AdminMainPagePM();
-        else
+        } else {
             pagePM = new NormalUserMainPagePM();
-        
+        }
+
         pagePM.setLoggedUser(user);
-        
+
         return pagePM;
     }
 
     void setUserDao(UserDAO userDao) {
         this.userDao = userDao;
+    }
+
+    int getTentativas() {
+        return this.tentativas;
     }
 }
