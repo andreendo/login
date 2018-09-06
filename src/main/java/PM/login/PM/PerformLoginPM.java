@@ -1,8 +1,10 @@
 package PM.login.PM;
 
+import PM.login.DAO.WrongTriesDAO;
 import PM.login.model.UserType;
 import PM.login.model.User;
 import PM.login.DAO.UserDAO;
+import PM.login.model.WrongTries;
 
 /**
  *
@@ -12,6 +14,7 @@ public class PerformLoginPM {
     String login;
     String password;
     UserDAO userDao;
+    WrongTriesDAO wtd;
 
     public PerformLoginPM() {
         login = "";
@@ -39,8 +42,12 @@ public class PerformLoginPM {
         password = "";
         System.out.println("PM.login.EfetuarLoginPM.clear()");
     }
+
+
     
     public PagePM pressLogin() throws Exception {
+
+
         login = login.trim();
         password = password.trim();
         if(login.isEmpty() || password.isEmpty())
@@ -49,10 +56,17 @@ public class PerformLoginPM {
         User user = userDao.getByName(login);
         if(user == null)
             throw new Exception("Inexistent username");
-        
-        if(! user.getPassword().equals(password))
+        if (wtd.count(user) >= 2) {
+            throw new Exception("Account is blocked");
+        }
+        if(! user.getPassword().equals(password)) {
+            wtd.save(new WrongTries(user, password));
+            if (wtd.count(user) >= 2) {
+                throw new Exception("Account is blocked");
+            }
             throw new Exception("Wrong password");
-        
+        }
+
         PagePM pagePM = null;
         if(user.getType() == UserType.ADMIN)
             pagePM = new AdminMainPagePM();
@@ -60,11 +74,15 @@ public class PerformLoginPM {
             pagePM = new NormalUserMainPagePM();
         
         pagePM.setLoggedUser(user);
-        
+        wtd.clear(user);
         return pagePM;
     }
 
     void setUserDao(UserDAO userDao) {
         this.userDao = userDao;
+    }
+
+    public void setWtd(WrongTriesDAO wtd) {
+        this.wtd = wtd;
     }
 }
