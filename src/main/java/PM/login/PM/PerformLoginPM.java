@@ -11,6 +11,7 @@ import PM.login.DAO.UserDAO;
 public class PerformLoginPM {
     String login;
     String password;
+    int cont;
     UserDAO userDao;
 
     public PerformLoginPM() {
@@ -41,6 +42,41 @@ public class PerformLoginPM {
     }
     
     public PagePM pressLogin() throws Exception {
+        System.out.println("CONTADOR::"+cont);
+        login = login.trim();
+        password = password.trim();
+        if(login.isEmpty() || password.isEmpty())
+            throw new Exception("Empty fields");
+        
+        User user = userDao.getByName(login);
+        if(user == null)
+            throw new Exception("Inexistent username");
+        
+        if(! user.getPassword().equals(password)){
+            if(cont >= 3){
+                
+                throw new Exception("Password Block");
+            }else{
+                cont++;
+                throw new Exception("Wrong password");
+            }
+ }
+            
+        
+
+        
+        PagePM pagePM = null;
+        if(user.getType() == UserType.ADMIN)
+            pagePM = new AdminMainPagePM();
+        else
+            pagePM = new NormalUserMainPagePM();
+        
+        pagePM.setLoggedUser(user);
+        
+        return pagePM;
+    }
+    /*
+    public PagePM pressLogin() throws Exception {          
         login = login.trim();
         password = password.trim();
         if(login.isEmpty() || password.isEmpty())
@@ -63,7 +99,7 @@ public class PerformLoginPM {
         
         return pagePM;
     }
-
+*/
     void setUserDao(UserDAO userDao) {
         this.userDao = userDao;
     }
