@@ -1,8 +1,10 @@
 package PM.login.PM;
 
+import PM.login.DAO.WrongTriesDAO;
 import PM.login.model.UserType;
 import PM.login.model.User;
 import PM.login.DAO.UserDAO;
+import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -16,9 +18,21 @@ public class EfetuarLoginPMTest {
     public EfetuarLoginPMTest() {
     }
 
+    private PerformLoginPM efetuarLoginPM;
+    private UserDAO userDaoMock;
+    private WrongTriesDAO wrongTriesDAO;
+
+    @Before
+    public void before(){
+        wrongTriesDAO = mock(WrongTriesDAO.class);
+        userDaoMock = mock(UserDAO.class);
+        efetuarLoginPM = new PerformLoginPM();
+        efetuarLoginPM.setWtd(wrongTriesDAO);
+        efetuarLoginPM.setUserDao(userDaoMock);
+    }
+
     @Test
     public void testClear() {
-        PerformLoginPM efetuarLoginPM = new PerformLoginPM();
         efetuarLoginPM.setLogin("andre");
         efetuarLoginPM.setPassword("123");
         
@@ -30,7 +44,6 @@ public class EfetuarLoginPMTest {
     
     @Test
     public void testEmptyFields() {
-        PerformLoginPM efetuarLoginPM = new PerformLoginPM();
         efetuarLoginPM.setLogin("");
         efetuarLoginPM.setPassword("");
         
@@ -44,12 +57,9 @@ public class EfetuarLoginPMTest {
     
     @Test
     public void testInexistentUsername() {
-        UserDAO userDaoMock = mock(UserDAO.class);
         when(userDaoMock.getByName("andre"))
                 .thenReturn(null);
-        
-        PerformLoginPM efetuarLoginPM = new PerformLoginPM();
-        efetuarLoginPM.setUserDao(userDaoMock);
+
         efetuarLoginPM.setLogin("andre");
         efetuarLoginPM.setPassword("123");
         
@@ -59,39 +69,86 @@ public class EfetuarLoginPMTest {
         } catch(Exception e) {
             assertEquals("Inexistent username", e.getMessage());
         }
-    }    
-    
+    }
+
     @Test
     public void testWrongPassword() {
-        UserDAO userDaoMock = mock(UserDAO.class);
         when(userDaoMock.getByName("andre"))
                 .thenReturn( new User("andre", "1234", UserType.NORMALUSER) );
-        
-        PerformLoginPM efetuarLoginPM = new PerformLoginPM();
+
         efetuarLoginPM.setLogin("andre");
         efetuarLoginPM.setPassword("123");
 
-        efetuarLoginPM.setUserDao(userDaoMock);
-        
+
         try {
             efetuarLoginPM.pressLogin();
             fail();
         } catch(Exception e) {
             assertEquals("Wrong password", e.getMessage());
         }
-    }        
-    
+    }
+
+    @Test
+    public void testWrongPassword3x() {
+        User u = new User("andre", "1234", UserType.NORMALUSER);
+        when(userDaoMock.getByName("andre"))
+                .thenReturn( u );
+
+
+
+        efetuarLoginPM.setLogin("andre");
+        efetuarLoginPM.setPassword("123");
+
+        try {
+            when(wrongTriesDAO.count( u ))
+                    .thenReturn(3);
+            efetuarLoginPM.pressLogin();
+            fail();
+
+        } catch(Exception e) {
+            assertEquals("Account is blocked", e.getMessage());
+        }
+    }
+
+    @Test
+    public void testWrongPassword2x() {
+        when(userDaoMock.getByName("andre"))
+                .thenReturn( new User("andre", "1234", UserType.NORMALUSER) );
+
+        efetuarLoginPM.setLogin("andre");
+        efetuarLoginPM.setPassword("123");
+
+
+        try {
+            efetuarLoginPM.pressLogin();
+            fail();
+
+        } catch(Exception e) {
+            assertEquals("Wrong password", e.getMessage());
+        }
+
+        try {
+            efetuarLoginPM.pressLogin();
+            fail();
+
+        } catch(Exception e) {
+            assertEquals("Wrong password", e.getMessage());
+        }
+
+        try {
+            efetuarLoginPM.setPassword("1234");
+            assertNotNull(efetuarLoginPM.pressLogin());
+        } catch(Exception e) { }
+
+    }
+
     @Test
     public void testAdminUserLogin() throws Exception {
-        UserDAO userDaoMock = mock(UserDAO.class);
         when(userDaoMock.getByName("admin"))
                 .thenReturn( new User("admin", "admin", UserType.ADMIN) );        
         
-        PerformLoginPM efetuarLoginPM = new PerformLoginPM();
         efetuarLoginPM.setLogin("admin");
         efetuarLoginPM.setPassword("admin");
-        
-        efetuarLoginPM.setUserDao(userDaoMock);
         
         PagePM pagePM = efetuarLoginPM.pressLogin();
         assertTrue( pagePM instanceof AdminMainPagePM );
@@ -100,15 +157,11 @@ public class EfetuarLoginPMTest {
     
     @Test
     public void testNormalUserLogin() throws Exception {
-        UserDAO userDaoMock = mock(UserDAO.class);
         when(userDaoMock.getByName("user"))
                 .thenReturn( new User("user", "normal", UserType.NORMALUSER) );        
         
-        PerformLoginPM efetuarLoginPM = new PerformLoginPM();
         efetuarLoginPM.setLogin("user");
         efetuarLoginPM.setPassword("normal");
-        
-        efetuarLoginPM.setUserDao(userDaoMock);
         
         PagePM pagePM = efetuarLoginPM.pressLogin();
         assertTrue( pagePM instanceof NormalUserMainPagePM );
